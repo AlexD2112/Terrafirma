@@ -33,7 +33,8 @@ public class MyGame extends ApplicationAdapter {
 	private static final double maxZoom = 2;
 	private static final double minZoom = 0.6;
 
-	private static final float moveSpeed = 10f;
+	private static final float moveSpeed = 20f;
+	private static final float zoomSpeed = 0.03f;
 	private static final float recedeFactor = 0.65f; //CAN BE NO GREATER THAN 0.75
 
 	private static final int worldWidth = 8;
@@ -57,7 +58,11 @@ public class MyGame extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		float modifiedMoveSpeed = moveSpeed;
+		float modifiedMoveSpeed = moveSpeed / (float) zoom;
+		//If screen is clicked, log screencenter, movespeed and zoom
+		if (Gdx.input.isTouched()) {
+			System.out.println("Screen center: " + screenCenter + " Move speed: " + modifiedMoveSpeed + " Zoom: " + zoom);
+		}
 		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
 			Gdx.app.exit();
 		}
@@ -76,12 +81,12 @@ public class MyGame extends ApplicationAdapter {
 			screenCenter.y -= modifiedMoveSpeed;
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.Q)) {
-			zoom += 0.01;
+			zoom += zoomSpeed;
 			if (zoom > maxZoom) {
 				zoom = maxZoom;
 			}
 		} else if(Gdx.input.isKeyPressed(Input.Keys.E)) {
-			zoom -= 0.01;
+			zoom -= zoomSpeed;
 			if (zoom < minZoom) {
 				zoom = minZoom;
 			}
