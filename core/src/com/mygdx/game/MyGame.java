@@ -137,11 +137,8 @@ public class MyGame extends ApplicationAdapter {
 
 	private void processClick() {
 		int x = Gdx.input.getX();
-		int y = Gdx.input.getY();
+		int y = (Gdx.input.getY() - height) * -1;
 		Vector2 point = new Vector2(x, y);
-		Gdx.app.log("Point1: ", String.valueOf(point));
 		point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
-		Gdx.app.log("Point2: ", String.valueOf(point));
-		Gdx.app.log("Point3: ", String.valueOf(DisplayFunctions.transformPoint(point, width, height, recedeFactor, screenCenter, zoom)));
-;
+		Gdx.app.log("Point: ", String.valueOf(point));
 	}}

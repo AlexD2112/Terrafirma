@@ -83,6 +83,7 @@ public class DisplayFunctions {
         double a1 = taylorCoefficients[1]; //Coefficient of first x term in taylor series
         double a2 = taylorCoefficients[2] / 2; //Coefficient of second x term in taylor series
         double a3 = taylorCoefficients[3] / 6; //Coefficient of third x term in taylor series
+
         double A1 = 1 / a1;
         double A2 = -a2 / (a1 * a1 * a1);
         double A3 = ((2 * a2 * a2) - (a1 * a3)) / (a1 * a1 * a1 * a1 * a1);
