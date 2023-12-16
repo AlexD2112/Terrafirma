@@ -2,6 +2,10 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -10,10 +14,12 @@ import org.hexworks.mixite.core.api.contract.SatelliteData;
 import org.hexworks.mixite.core.api.HexagonalGridBuilder;
 import org.hexworks.mixite.core.api.HexagonalGridLayout;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.List;
 
 public class HexMap {
+    private TextureRegion whitePixelRegion;
     private HexagonalGridBuilder<SatelliteData> builder;
     private int doneCount = 0;
     private HexagonalGrid<SatelliteData> grid;
@@ -33,25 +39,53 @@ public class HexMap {
         for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
             hexagon.setSatelliteData(new CustomSatelliteData(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1)));
         }
+
+
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        Texture whiteTexture = new Texture(pixmap); // don't forget to dispose of this later
+        pixmap.dispose();
+        whitePixelRegion = new TextureRegion(whiteTexture);
     }
 
     public HexagonalGrid<SatelliteData> getGrid() {
         return grid;
     }
 
-    public void renderMap(ShapeRenderer shapeRenderer, double width, double height, float recedeFactor, Vector2 screenCenter, double zoom) {
-        boolean problem = false;
-        int problemIndex = 0;
+    public int[] getEdges() {
+        //Get edges from hexagon grid
+        int[] edges = new int[4];
+        for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
+            Point p = hexagon.getPoints().get(0);
+            if (p.getCoordinateX() > edges[0]) {
+                edges[0] = (int) p.getCoordinateX();
+            }
+            if (p.getCoordinateX() < edges[1]) {
+                edges[1] = (int) p.getCoordinateX();
+            }
+            if (p.getCoordinateY() > edges[2]) {
+                edges[2] = (int) p.getCoordinateY();
+            }
+            if (p.getCoordinateY() < edges[3]) {
+                edges[3] = (int) p.getCoordinateY();
+            }
+        }
+
+        return edges;
+    }
+
+    public void renderMap(Batch batch, double width, double height, float recedeFactor, Vector2 screenCenter, double zoom) {
+        boolean firstTime = true;
         for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
             List<Point> hexPoints = hexagon.getPoints();
             int numPoints = hexPoints.size();
             Vector2[] points = new Vector2[numPoints];
 
             for (int i = 0; i < numPoints; i++) {
-                problem = false;
                 Point p = hexPoints.get(i);
                 Vector2 transformedPoint = DisplayFunctions.transformPoint(new Vector2((float) p.getCoordinateX(), (float) p.getCoordinateY()), width, height, recedeFactor, screenCenter, zoom);
-                //Check if transformed point values are not numbers
+                // Check if transformed point values are not numbers
                 if ((Float.isNaN(transformedPoint.x) || Float.isNaN(transformedPoint.y)) && doneCount == 0) {
                     transformedPoint.x = 0;
                     transformedPoint.y = (float) (-2 * height); //To avoid potential errors- will be off screen
@@ -69,9 +103,6 @@ public class HexMap {
             }
             //Texture textureSolid = makeTextureBox();
 
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            shapeRenderer.setColor(hexColor);
-
             // Prepare an array to store the coordinates for the polygon
             float[] vertices = new float[points.length * 2];
 
@@ -82,12 +113,11 @@ public class HexMap {
             }
 
             // Draw the polygon
+            ShapeDrawer shapeDrawer = new ShapeDrawer(batch, whitePixelRegion);
 
+            shapeDrawer.setColor(hexColor);
 
-            //Draw polygon shape
-            shapeRenderer.polygon(new float[]{points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y, points[4].x, points[4].y, points[5].x, points[5].y});
-
-            shapeRenderer.end();
+            shapeDrawer.filledPolygon(vertices);
         }
     }
 }
