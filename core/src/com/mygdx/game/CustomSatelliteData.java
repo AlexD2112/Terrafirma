@@ -17,4 +17,8 @@ public class CustomSatelliteData extends DefaultSatelliteData {
         }
         return color;
     }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
 }

@@ -74,7 +74,7 @@ public class MyGame extends ApplicationAdapter {
 	public void render () {
 		float modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
 		//If screen is clicked, log screencenter, movespeed and zoom
-		if (Gdx.input.isTouched()) {
+		if (Gdx.input.justTouched()) {
 			processClick();
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
@@ -140,5 +140,7 @@ public class MyGame extends ApplicationAdapter {
 		int y = (Gdx.input.getY() - height) * -1;
 		Vector2 point = new Vector2(x, y);
 		point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
+		CustomSatelliteData SatelliteData = (CustomSatelliteData) hexMap.getGrid().getByPixelCoordinate(point.x, point.y).get().getSatelliteData().get();
+		SatelliteData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
 		Gdx.app.log("Point: ", String.valueOf(point));
 	}}
