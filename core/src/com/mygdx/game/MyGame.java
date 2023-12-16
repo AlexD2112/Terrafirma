@@ -6,7 +6,6 @@ import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -25,7 +24,7 @@ import java.util.List;
 
 public class MyGame extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
-	PolygonSpriteBatch batch;
+	SpriteBatch batch;
 	// ... other variables like ShapeRenderer
 	private int height;
 	private int width;
@@ -41,18 +40,12 @@ public class MyGame extends ApplicationAdapter {
 	private static final int worldWidth = 8;
 	private static final int worldHeight = 14;
 
-	private static int rightEdge;
-	private static int leftEdge;
-	private static int topEdge;
-	private static int bottomEdge;
-
-
 	private HexMap hexMap;
 
 
 	@Override
 	public void create() {
-		batch = new PolygonSpriteBatch();
+		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 
 		height = Gdx.graphics.getHeight();
@@ -60,22 +53,15 @@ public class MyGame extends ApplicationAdapter {
 
 		hexMap = new HexMap(worldWidth, worldHeight, width);
 
-		//Get edges from a hexMap method
-		int[] edges = hexMap.getEdges();
-		rightEdge = edges[0];
-		leftEdge = edges[1];
-		topEdge = edges[2];
-		bottomEdge = edges[3];
-
 		screenCenter = new Vector2(width / 2f, height / 2f);
 	}
 
 	@Override
 	public void render () {
-		float modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
+		float modifiedMoveSpeed = moveSpeed / (float) zoom;
 		//If screen is clicked, log screencenter, movespeed and zoom
 		if (Gdx.input.isTouched()) {
-			processClick();
+			System.out.println("Screen center: " + screenCenter + " Move speed: " + modifiedMoveSpeed + " Zoom: " + zoom);
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
 			Gdx.app.exit();
@@ -86,25 +72,13 @@ public class MyGame extends ApplicationAdapter {
 		modifiedMoveSpeed /= (float) zoom;
 		if(Gdx.input.isKeyPressed(Input.Keys.D)) {
 			screenCenter.x += modifiedMoveSpeed;
-			if (screenCenter.x > rightEdge)	{
-				screenCenter.x = rightEdge;
-			}
 		} else if(Gdx.input.isKeyPressed(Input.Keys.A)) {
 			screenCenter.x -= modifiedMoveSpeed;
-			if (screenCenter.x < leftEdge) {
-				screenCenter.x = leftEdge;
-			}
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.W)) {
 			screenCenter.y += modifiedMoveSpeed;
-			if (screenCenter.y > topEdge) {
-				screenCenter.y = topEdge;
-			}
 		} else if(Gdx.input.isKeyPressed(Input.Keys.S)) {
 			screenCenter.y -= modifiedMoveSpeed;
-			if (screenCenter.y < bottomEdge) {
-				screenCenter.y = bottomEdge;
-			}
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.Q)) {
 			zoom += zoomSpeed;
@@ -122,7 +96,7 @@ public class MyGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
 
-		hexMap.renderMap(batch, width, height, recedeFactor, screenCenter, zoom);
+		hexMap.renderMap(shapeRenderer, width, height, recedeFactor, screenCenter, zoom);
 
 		batch.end();
 	}
@@ -134,11 +108,4 @@ public class MyGame extends ApplicationAdapter {
 		shapeRenderer.dispose();
 		// Dispose other resources
 	}
-
-	private void processClick() {
-		int x = Gdx.input.getX();
-		int y = (Gdx.input.getY() - height) * -1;
-		Vector2 point = new Vector2(x, y);
-		point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
-		Gdx.app.log("Point: ", String.valueOf(point));
-	}}
+}
