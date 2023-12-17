@@ -26,13 +26,13 @@ public class HexMap {
     private Color[][] hexColorArray;
 
 
-    public HexMap(int width, int height, int screenWidth) {
+    public HexMap(int width, int height, int hexDensity, int screenWidth) {
         builder = new HexagonalGridBuilder<>()
                 .setGridHeight(height)
                 .setGridWidth(width)
                 .setGridLayout(HexagonalGridLayout.RECTANGULAR)
                 .setOrientation(HexagonOrientation.POINTY_TOP)
-                .setRadius(((double) screenWidth / 6) / Math.sqrt(3)); //Radius is the distance from the center to corner
+                .setRadius(((double) screenWidth / hexDensity) / Math.sqrt(3)); //Radius is the distance from the center to corner
 
         grid = builder.build();
 

@@ -2,26 +2,17 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.sun.crypto.provider.BlowfishKeyGenerator;
-import org.hexworks.mixite.core.api.HexagonOrientation;
-import org.hexworks.mixite.core.api.HexagonalGrid;
-import org.hexworks.mixite.core.api.HexagonalGridBuilder;
-import org.hexworks.mixite.core.api.HexagonalGridLayout;
+import org.hexworks.mixite.core.api.Point;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 import org.hexworks.mixite.core.api.Hexagon;
-import org.hexworks.mixite.core.api.Point;
 import com.badlogic.gdx.graphics.Color;
-
-import java.util.List;
+import org.hexworks.mixite.core.vendor.Maybe;
 
 public class MyGame extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
@@ -40,6 +31,7 @@ public class MyGame extends ApplicationAdapter {
 
 	private static final int worldWidth = 8;
 	private static final int worldHeight = 14;
+	private static final int hexDensity = 6;
 
 	private static int rightEdge;
 	private static int leftEdge;
@@ -58,7 +50,7 @@ public class MyGame extends ApplicationAdapter {
 		height = Gdx.graphics.getHeight();
 		width = Gdx.graphics.getWidth();
 
-		hexMap = new HexMap(worldWidth, worldHeight, width);
+		hexMap = new HexMap(worldWidth, worldHeight, hexDensity, width);
 
 		//Get edges from a hexMap method
 		int[] edges = hexMap.getEdges();
@@ -140,7 +132,47 @@ public class MyGame extends ApplicationAdapter {
 		int y = (Gdx.input.getY() - height) * -1;
 		Vector2 point = new Vector2(x, y);
 		point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
-		CustomSatelliteData SatelliteData = (CustomSatelliteData) hexMap.getGrid().getByPixelCoordinate(point.x, point.y).get().getSatelliteData().get();
-		SatelliteData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+		Maybe<Hexagon<SatelliteData>> hexMaybe = hexMap.getGrid().getByPixelCoordinate(point.x, point.y);
+		//Manually check if point is in hexagon
+		if (hexMaybe.isPresent()) {
+			Hexagon<SatelliteData> hex = hexMaybe.get();
+			if (isPointInHexagon(point, hex, ((double) width / hexDensity) / Math.sqrt(3))) {
+				CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
+				hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+			}
+		}
 		Gdx.app.log("Point: ", String.valueOf(point));
-	}}
+	}
+
+	public static boolean isPointInHexagon(Vector2 point, Hexagon<SatelliteData> hex, double hexRadius) {
+		//Divide hexagon into 6 triangles, and check if point is in any of them
+		Vector2 center = new Vector2((float) hex.getCenterX(), (float) hex.getCenterY());
+		for (int i = 0; i < 6; i++) {
+			Vector2 point1 = new Vector2((float) (hex.getCenterX() + hexRadius * Math.cos(i * Math.PI / 3)), (float) (hex.getCenterY() + hexRadius * Math.sin(i * Math.PI / 3)));
+			Vector2 point2 = new Vector2((float) (hex.getCenterX() + hexRadius * Math.cos((i + 1) * Math.PI / 3)), (float) (hex.getCenterY() + hexRadius * Math.sin((i + 1) * Math.PI / 3)));
+			if (isPointInTriangle(point, center, point1, point2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isPointInTriangle(Vector2 checkPoint, Vector2 point1, Vector2 point2, Vector2 point3) {
+		//Check if point is in triangle
+		float d1, d2, d3;
+		boolean has_neg, has_pos;
+
+		d1 = sign(checkPoint, point1, point2);
+		d2 = sign(checkPoint, point2, point3);
+		d3 = sign(checkPoint, point3, point1);
+
+		has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+		has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+		return !(has_neg && has_pos);
+	}
+
+	private static float sign(Vector2 p1, Vector2 p2, Vector2 p3) {
+		return ((p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y));
+	}
+}
