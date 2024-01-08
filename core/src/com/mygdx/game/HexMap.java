@@ -75,8 +75,12 @@ public class HexMap {
         return edges;
     }
 
-    public void renderMap(Batch batch, double width, double height, float recedeFactor, Vector2 screenCenter, double zoom) {
-        boolean firstTime = true;
+    public void renderMap(Batch batch, double width, double height, float recedeFactor, Vector2 screenCenter, double zoom, double maxZoom) {
+        double greyScale = 0;
+        if (zoom > maxZoom) {
+            greyScale = (zoom - maxZoom) / maxZoom;
+        }
+
         for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
             List<Point> hexPoints = hexagon.getPoints();
             int numPoints = hexPoints.size();
@@ -91,15 +95,18 @@ public class HexMap {
                     transformedPoint.y = (float) (-2 * height); //To avoid potential errors- will be off screen
                 }
                 points[i] = transformedPoint;
+                points[i] = transformedPoint;
             }
 
             //Create an object equal to hexagon satellite data, error handling sets color to white if it doesnt exist
             SatelliteData satelliteData = hexagon.getSatelliteData().get();
             Color hexColor;
             if (satelliteData instanceof CustomSatelliteData) {
-                hexColor = ((CustomSatelliteData) satelliteData).getColor();
+                //Clone getcolor
+                hexColor = ((CustomSatelliteData) satelliteData).getColor().cpy();
+                hexColor.a = (float) (1-greyScale);
             } else {
-                hexColor = new Color(255, 255, 255, 1);
+                hexColor = new Color(255, 255, 255, (float) (1-greyScale));
             }
             //Texture textureSolid = makeTextureBox();
 
@@ -112,7 +119,6 @@ public class HexMap {
                 vertices[j++] = points[i].y; // Add the y-coordinate
             }
 
-            // Draw the polygon
             ShapeDrawer shapeDrawer = new ShapeDrawer(batch, whitePixelRegion);
 
             shapeDrawer.setColor(hexColor);
