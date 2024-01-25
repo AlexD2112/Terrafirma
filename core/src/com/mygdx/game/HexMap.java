@@ -24,9 +24,11 @@ public class HexMap {
     private int doneCount = 0;
     private HexagonalGrid<SatelliteData> grid;
     private Color[][] hexColorArray;
+    private int hexDensity;
 
 
     public HexMap(int width, int height, int hexDensity, int screenWidth) {
+        this.hexDensity = hexDensity;
         builder = new HexagonalGridBuilder<>()
                 .setGridHeight(height)
                 .setGridWidth(width)
@@ -125,5 +127,9 @@ public class HexMap {
 
             shapeDrawer.filledPolygon(vertices);
         }
+    }
+
+    public int getHexDensity() {
+        return hexDensity;
     }
 }

@@ -1,13 +1,29 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
+import org.hexworks.mixite.core.vendor.Maybe;
 
 public class DisplayFunctions {
     private static final int inversionAccuracy = 10; //How many terms of the base equation to compare to find the closest value
 
+    public static Hexagon getHexFromPoint(Vector2 point, HexMap hexMap, double width, double height, double recedeFactor, Vector2 screenCenter, double zoom, int hexDensity) {
+        //Get hexagon from point
+        point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
+        Maybe<Hexagon<SatelliteData>> hexMaybe = hexMap.getGrid().getByPixelCoordinate(point.x, point.y);
+        //Manually check if point is in hexagon
+        if (hexMaybe.isPresent()) {
+            Hexagon<SatelliteData> hex = hexMaybe.get();
+            if (DisplayFunctions.isPointInHexagon(point, hex, ((double) width / hexDensity) / Math.sqrt(3))) {
+                return hex;
+            }
+        }
+        return null;
+    }
     public static Vector2 transformPoint(Vector2 point, double width, double height, double recedeFactor, Vector2 screenCenter, double zoom) {
         point.x -= screenCenter.x;
         point.y += ((float) height / 2) - screenCenter.y;

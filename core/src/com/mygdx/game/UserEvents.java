@@ -94,15 +94,8 @@ public class UserEvents {
         int x = Gdx.input.getX();
         int y = (Gdx.input.getY() - height) * -1;
         Vector2 point = new Vector2(x, y);
-        point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
-        Maybe<Hexagon<SatelliteData>> hexMaybe = hexMap.getGrid().getByPixelCoordinate(point.x, point.y);
-        //Manually check if point is in hexagon
-        if (hexMaybe.isPresent()) {
-            Hexagon<SatelliteData> hex = hexMaybe.get();
-            if (DisplayFunctions.isPointInHexagon(point, hex, ((double) width / hexDensity) / Math.sqrt(3))) {
-                CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
-                hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
-            }
-        }
+        Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
+        CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
+        hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
     }
 }

@@ -2,95 +2,95 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.EllipseShapeBuilder;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import org.hexworks.mixite.core.api.*;
+import com.badlogic.gdx.math.Vector3;
+import org.hexworks.mixite.core.api.Hexagon;
+import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
-import org.hexworks.mixite.core.vendor.Maybe;
-import space.earlygrey.shapedrawer.ShapeDrawer;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class ZoomMap {
-    private TextureRegion whitePixelRegion;
-    HexMap hexMap;
+    public PerspectiveCamera cam;
+    public ModelBatch modelBatch;
+    public Model model;
+    public ModelInstance instance;
 
-    ArrayList<Hexagon<SatelliteData>> hexArray;
-    public ZoomMap(HexMap hexMap) {
-        //Get edges from hexagon grid
-        this.hexMap = hexMap;
+    public ZoomMap() {
+        modelBatch = new ModelBatch();
 
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-
-        Texture whiteTexture = new Texture(pixmap); // don't forget to dispose of this later
-        pixmap.dispose();
-        whitePixelRegion = new TextureRegion(whiteTexture);
+        cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        cam.position.set(0f, 10f, 10f);
+        cam.lookAt(0,0,0);
+        cam.near = 1f;
+        cam.far = 300f;
+        cam.update();
     }
 
-    public void renderMap(Batch batch, double width, double height, float recedeFactor, Vector2 screenCenter, double zoom) {
-        //Find current hexagon, as well as "nearest hexagons" if they exist, and render them
-        HexagonalGrid<SatelliteData> grid = hexMap.getGrid();
-        //Make a copy of screen center
-        Vector2 currentCenter = new Vector2((float) (width / 2), (float) (height / 2));
-        currentCenter = DisplayFunctions.reverseTransformation(currentCenter, width, height, recedeFactor, screenCenter, zoom);
+    public void dispose() {
+        modelBatch.dispose();
+        model.dispose();
+    }
 
-        Maybe<Hexagon<SatelliteData>> maybeHex = hexMap.getGrid().getByPixelCoordinate(currentCenter.x, currentCenter.y);
-        if (maybeHex.isPresent()) {
-            Hexagon<SatelliteData> hex = maybeHex.get();
-            hexArray = new ArrayList<>();
-            hexArray.add(hex);
-        } else {
-            //Check each corner of the screen to see if it's in a hexagon
-            Vector2[] screenCorners = new Vector2[4];
-            screenCorners[0] = new Vector2(0, 0);
-            screenCorners[1] = new Vector2((float) width, 0);
-            screenCorners[2] = new Vector2(0, (float) height);
-            screenCorners[3] = new Vector2((float) width, (float) height);
+    public void renderZoom(double width, double height, double recedeFactor, Vector2 screenCenter, double zoom, double maxZoom, HexMap hexMap) {
+        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-            for (Vector2 corner : screenCorners) {
-                corner = DisplayFunctions.reverseTransformation(corner, width, height, recedeFactor, screenCenter, zoom);
-                Maybe<Hexagon<SatelliteData>> maybeHex2 = hexMap.getGrid().getByPixelCoordinate(corner.x, corner.y);
-                if (maybeHex2.isPresent()) {
-                    hexArray.add(maybeHex2.get());
-                    break;
-                }
+        Hexagon<SatelliteData> hexagon = DisplayFunctions.getHexFromPoint(screenCenter, hexMap, width, height, recedeFactor, screenCenter, zoom, hexMap.getHexDensity());
+        Vector2 hexPoint = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
+
+        //Seamlessly transition to draw the hexagon being looked at
+        cam.position.set(hexPoint, 10);
+        cam.lookAt(hexPoint.x, hexPoint.y, 0);
+        cam.update();
+
+
+        //Get the hexagon being looked at
+        //Resolve SatelliteData to CustomSatteliteData
+        CustomSatelliteData satelliteData = (CustomSatelliteData) hexagon.getSatelliteData().get();
+        Color color = satelliteData.getColor();
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("hexagon", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color)));
+        createPointyTopHexagon(builder, 1, new Vector3(hexPoint, 0));
+        model = modelBuilder.end();
+        instance = new ModelInstance(model);
+        modelBatch.begin(cam);
+        modelBatch.render(instance);
+        modelBatch.end();
+    }
+
+    private void createPointyTopHexagon(MeshPartBuilder builder, float size, Vector3 center) {
+        float radius = size / (float)Math.sqrt(3); // Calculate radius based on the size
+        Vector3[] vertices = new Vector3[6];
+
+        for (int i = 0; i < 6; i++) {
+            float angle = (float)Math.toRadians(30 + i * 60); // 30 degree offset for pointy top
+            float x = center.x + radius * MathUtils.cos(angle);
+            float y = center.y + radius * MathUtils.sin(angle);
+            vertices[i] = new Vector3(x, y, center.z);
+        }
+
+        for (int i = 0; i < 6; i++) {
+            builder.vertex(vertices[i].x, vertices[i].y, vertices[i].z,
+                    0, 0, 1, // Normal vector pointing up
+                    Color.rgb888(1, 2, 3), // Color (white)
+                    0, 0); // UV coordinates (unused)
+            if (i > 0) {
+                builder.triangle((short)0, (short)i, (short)(i + 1));
             }
         }
-        if (hexArray.isEmpty()) {
-            return;
-        }
-        hexArray.addAll(grid.getNeighborsOf(hexArray.get(0)));
 
-        //Log all coordinates in hexArray
-        int j = 0;
-        for (Hexagon<SatelliteData> hex : hexArray) {
-            System.out.println("Hexagon" + j + ": " + hex.getGridX() + ", " + hex.getGridY() + ", " + hex.getGridZ());
-            j++;
-        }
-
-        ShapeDrawer shapeDrawer = new ShapeDrawer(batch, whitePixelRegion);
-
-        shapeDrawer.setColor(Color.WHITE);
-        for (Hexagon<SatelliteData> hexagon : hexArray) {
-            List<Point> hexPoints = hexagon.getPoints();
-            int numPoints = hexPoints.size();
-            float[] vertices = new float[numPoints * 2];
-
-            for (int i = 0; i < numPoints; i++) {
-                Point p = hexPoints.get(i);
-                Vector2 transformedPoint = DisplayFunctions.transformPoint(new Vector2((float) p.getCoordinateX(), (float) p.getCoordinateY()), width, height, recedeFactor, screenCenter, zoom);
-                vertices[i * 2] = transformedPoint.x;
-                vertices[i * 2 + 1] = transformedPoint.y;
-            }
-            shapeDrawer.setColor(((CustomSatelliteData) hexagon.getSatelliteData().get()).getColor());
-            shapeDrawer.filledPolygon(vertices);
-        }
+        // Connect the last vertex back to the first one to complete the hexagon
+        builder.triangle((short)0, (short)6, (short)1);
     }
 }

@@ -53,7 +53,7 @@ public class MyGame extends ApplicationAdapter {
 		width = Gdx.graphics.getWidth();
 
 		hexMap = new HexMap(worldWidth, worldHeight, hexDensity, width);
-		zoomMap = new ZoomMap(hexMap);
+		zoomMap = new ZoomMap();
 
 		//Get edges from a hexMap method
 		int[] edges = hexMap.getEdges();
@@ -72,16 +72,15 @@ public class MyGame extends ApplicationAdapter {
 		//Make color white
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
+
 
 		if (zoom < maxZoom*2) {
+			batch.begin();
 			hexMap.renderMap(batch, width, height, (float) recedeFactor, screenCenter, zoom, maxZoom);
+			batch.end();
 		} else {
-			zoomMap.renderMap(batch, width, height, (float) recedeFactor, screenCenter, zoom);
+			zoomMap.renderZoom(width, height, recedeFactor, screenCenter, zoom, maxZoom, hexMap);
 		}
-
-
-		batch.end();
 	}
 
 
@@ -89,6 +88,7 @@ public class MyGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		shapeRenderer.dispose();
+		zoomMap.dispose();
 		// Dispose other resources
 	}
 }
