@@ -6,8 +6,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.hexworks.mixite.core.api.Hexagon;
-import org.hexworks.mixite.core.api.contract.SatelliteData;
-import org.hexworks.mixite.core.vendor.Maybe;
 
 public class UserEvents {
     private static int width;
@@ -27,7 +25,7 @@ public class UserEvents {
     private static int bottomEdge;
 
 
-    public static double checkInput(int receivedWidth, int receivedHeight, double receivedRecedeFactor, Vector2 givenScreenCenter, double receivedZoom, HexMap receivedHexMap, int receivedHexDensity, float receivedMoveSpeed, double receivedMinZoom, double receivedMaxZoom, float receivedZoomSpeed, int receivedRightEdge, int receivedLeftEdge, int receivedTopEdge, int receivedBottomEdge) {
+    public static double checkInput(int receivedWidth, int receivedHeight, double receivedRecedeFactor, Vector2 givenScreenCenter, double receivedZoom, HexMap receivedHexMap, TacticalMap receivedTacticalMap, int receivedHexDensity, float receivedMoveSpeed, double receivedMinZoom, double receivedMaxZoom, float receivedZoomSpeed, int receivedRightEdge, int receivedLeftEdge, int receivedTopEdge, int receivedBottomEdge) {
         screenCenter = givenScreenCenter;
         width = receivedWidth;
         height = receivedHeight;
@@ -58,28 +56,35 @@ public class UserEvents {
         modifiedMoveSpeed /= (float) zoom;
         if(Gdx.input.isKeyPressed(Input.Keys.D)) {
             screenCenter.x += modifiedMoveSpeed;
-            if (screenCenter.x > rightEdge)	{
-                screenCenter.x = rightEdge;
-            }
+            HexMap.camPosition.x += modifiedMoveSpeed;
+//            if (screenCenter.x > rightEdge)	{
+//                screenCenter.x = rightEdge;
+//            }
         } else if(Gdx.input.isKeyPressed(Input.Keys.A)) {
             screenCenter.x -= modifiedMoveSpeed;
-            if (screenCenter.x < leftEdge) {
-                screenCenter.x = leftEdge;
-            }
+            HexMap.camPosition.x -= modifiedMoveSpeed;
+//            if (screenCenter.x < leftEdge) {
+//                screenCenter.x = leftEdge;
+//            }
         }
         if(Gdx.input.isKeyPressed(Input.Keys.W)) {
             screenCenter.y += modifiedMoveSpeed;
-            if (screenCenter.y > topEdge) {
-                screenCenter.y = topEdge;
-            }
+            HexMap.camPosition.y += modifiedMoveSpeed;
+//            if (screenCenter.y > topEdge) {
+//                screenCenter.y = topEdge;
+//            }
         } else if(Gdx.input.isKeyPressed(Input.Keys.S)) {
             screenCenter.y -= modifiedMoveSpeed;
-            if (screenCenter.y < bottomEdge) {
-                screenCenter.y = bottomEdge;
-            }
+            HexMap.camPosition.y -= modifiedMoveSpeed;
+//            if (screenCenter.y < bottomEdge) {
+//                screenCenter.y = bottomEdge;
+//            }
         }
         if(Gdx.input.isKeyPressed(Input.Keys.Q)) {
             zoom += zoomSpeed;
+            if (zoom > maxZoom * 3) {
+                zoom = maxZoom * 3;
+            }
         } else if(Gdx.input.isKeyPressed(Input.Keys.E)) {
             zoom -= zoomSpeed;
             if (zoom < minZoom) {
@@ -94,6 +99,7 @@ public class UserEvents {
         int x = Gdx.input.getX();
         int y = (Gdx.input.getY() - height) * -1;
         Vector2 point = new Vector2(x, y);
+        System.out.println("Click at: " + point.x + ", " + point.y);
         Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
         CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
         hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));

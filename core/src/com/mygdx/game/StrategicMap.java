@@ -3,36 +3,40 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.EllipseShapeBuilder;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import org.hexworks.mixite.core.api.CubeCoordinate;
 import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 
-public class ZoomMap {
-    public PerspectiveCamera cam;
-    public ModelBatch modelBatch;
-    public Model model;
-    public ModelInstance instance;
+import java.util.ArrayList;
 
-    public ZoomMap() {
+public class StrategicMap extends HexMap{
+    public StrategicMap(HexagonalGrid<SatelliteData> grid) {
+        super(grid);
         modelBatch = new ModelBatch();
 
         cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.set(0f, 10f, 10f);
         cam.lookAt(0,0,0);
-        cam.near = 1f;
-        cam.far = 300f;
+        cam.near = 0.01f;
+        cam.far = 1000f;
         cam.update();
+    }
+
+    @Override
+    public void init(double width, double height, double zoom, double maxZoom, float hexSize) {
+        super.hexSize = hexSize;
     }
 
     public void dispose() {
@@ -40,32 +44,40 @@ public class ZoomMap {
         model.dispose();
     }
 
-    public void renderZoom(double width, double height, double recedeFactor, Vector2 screenCenter, double zoom, double maxZoom, HexMap hexMap) {
+    @Override
+    public void render() {
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        Hexagon<SatelliteData> hexagon = DisplayFunctions.getHexFromPoint(screenCenter, hexMap, width, height, recedeFactor, screenCenter, zoom, hexMap.getHexDensity());
-        Vector2 hexPoint = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
+        //Get first hexagon
+        Hexagon<SatelliteData> firstHex = grid.getHexagons().iterator().next();
+//        System.out.println(firstHex.getCenterX() + " " + firstHex.getCenterY());
+//        System.out.println(camPosition.x + " " + camPosition.y + " " + camPosition.z);
 
         //Seamlessly transition to draw the hexagon being looked at
-        cam.position.set(hexPoint, 10);
-        cam.lookAt(hexPoint.x, hexPoint.y, 0);
+        cam.position.set(camPosition);
+        cam.update();
+        cam.lookAt(camPosition.x, camPosition.y + 100, 0);
         cam.update();
 
-
-        //Get the hexagon being looked at
-        //Resolve SatelliteData to CustomSatteliteData
-        CustomSatelliteData satelliteData = (CustomSatelliteData) hexagon.getSatelliteData().get();
-        Color color = satelliteData.getColor();
-
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-        MeshPartBuilder builder = modelBuilder.part("hexagon", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color)));
-        createPointyTopHexagon(builder, 1, new Vector3(hexPoint, 0));
-        model = modelBuilder.end();
-        instance = new ModelInstance(model);
         modelBatch.begin(cam);
-        modelBatch.render(instance);
+        //Loop through and display all hexagons in grid
+        for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
+            if (hexagon.getSatelliteData().isPresent()) {
+                CustomSatelliteData satelliteData = (CustomSatelliteData) hexagon.getSatelliteData().get();
+                Color color = satelliteData.getColor();
+                Vector2 hexCenter = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
+
+                ModelBuilder modelBuilder = new ModelBuilder();
+                modelBuilder.begin();
+                MeshPartBuilder builder = modelBuilder.part("hexagon", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color)));
+                createPointyTopHexagon(builder, hexSize, new Vector3(hexCenter, 0));
+                model = modelBuilder.end();
+                instance = new ModelInstance(model);
+                modelBatch.render(instance);
+            }
+        }
+
         modelBatch.end();
     }
 

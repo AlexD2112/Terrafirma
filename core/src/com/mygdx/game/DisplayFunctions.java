@@ -14,7 +14,7 @@ public class DisplayFunctions {
     public static Hexagon getHexFromPoint(Vector2 point, HexMap hexMap, double width, double height, double recedeFactor, Vector2 screenCenter, double zoom, int hexDensity) {
         //Get hexagon from point
         point = DisplayFunctions.reverseTransformation(point, width, height, recedeFactor, screenCenter, zoom);
-        Maybe<Hexagon<SatelliteData>> hexMaybe = hexMap.getGrid().getByPixelCoordinate(point.x, point.y);
+        Maybe<Hexagon<SatelliteData>> hexMaybe = hexMap.grid.getByPixelCoordinate(point.x, point.y);
         //Manually check if point is in hexagon
         if (hexMaybe.isPresent()) {
             Hexagon<SatelliteData> hex = hexMaybe.get();
@@ -24,12 +24,13 @@ public class DisplayFunctions {
         }
         return null;
     }
-    public static Vector2 transformPoint(Vector2 point, double width, double height, double recedeFactor, Vector2 screenCenter, double zoom) {
+    public static Vector2 transformPoint(Vector2 inputPoint, double width, double height, double recedeFactor, Vector2 screenCenter, double zoom) {
+        Vector2 point = new Vector2(inputPoint);
         point.x -= screenCenter.x;
         point.y += ((float) height / 2) - screenCenter.y;
 
-        point.x *= zoom;
-        point.y *= zoom;
+        point.x *= (float) zoom;
+        point.y *= (float) zoom;
 
 
         double yFactor = point.y / height; //yFactor is the value of the point, adjusted to be over the screen

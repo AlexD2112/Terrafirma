@@ -2,17 +2,15 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import org.hexworks.mixite.core.api.Point;
+import com.badlogic.gdx.math.Vector3;
+import org.hexworks.mixite.core.api.*;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
-import org.hexworks.mixite.core.api.Hexagon;
 import com.badlogic.gdx.graphics.Color;
-import org.hexworks.mixite.core.vendor.Maybe;
 
 public class MyGame extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
@@ -20,12 +18,12 @@ public class MyGame extends ApplicationAdapter {
 	// ... other variables like ShapeRenderer
 	private int height;
 	private int width;
-	private Vector2 screenCenter;
+	private Vector2 mapScalarPoint;
 	private double zoom = 1;
 	private static final double maxZoom = 2;
 	private static final double minZoom = 0.6;
 
-	private static final float moveSpeed = 20f;
+	private static final float moveSpeed = 5f;
 	private static final float zoomSpeed = 0.03f;
 	private static final float recedeFactor = 0.6f; //CAN BE NO GREATER THAN 0.75
 
@@ -40,8 +38,10 @@ public class MyGame extends ApplicationAdapter {
 
 	private Vector2[] vectors;
 
-	private HexMap hexMap;
-	private ZoomMap zoomMap;
+	private StrategicMap strategicMap;
+	private TacticalMap tacticalMap;
+	private HexagonalGrid<SatelliteData> grid;
+	boolean zoomed = false;
 
 
 	@Override
@@ -52,22 +52,58 @@ public class MyGame extends ApplicationAdapter {
 		height = Gdx.graphics.getHeight();
 		width = Gdx.graphics.getWidth();
 
-		hexMap = new HexMap(worldWidth, worldHeight, hexDensity, width);
-		zoomMap = new ZoomMap();
+		HexagonalGridBuilder<SatelliteData> builder = new HexagonalGridBuilder<>()
+				.setGridHeight(worldHeight)
+				.setGridWidth(worldWidth)
+				.setGridLayout(HexagonalGridLayout.RECTANGULAR)
+				.setOrientation(HexagonOrientation.POINTY_TOP)
+				.setRadius(((double) width / hexDensity) / Math.sqrt(3)); //Radius is the distance from the center to corner
 
-		//Get edges from a hexMap method
-		int[] edges = hexMap.getEdges();
-		rightEdge = edges[0];
-		leftEdge = edges[1];
-		topEdge = edges[2];
-		bottomEdge = edges[3];
+		grid = builder.build();
 
-		screenCenter = new Vector2(width / 2f, height / 2f);
+		for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
+			hexagon.setSatelliteData(new CustomSatelliteData(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1)));
+		}
+
+		strategicMap = new StrategicMap(grid);
+		tacticalMap = new TacticalMap(grid);
+
+		//Initialize all edges to 0
+		rightEdge = 0;
+		leftEdge = 0;
+		topEdge = 0;
+		bottomEdge = 0;
+
+		for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
+			Point p = hexagon.getPoints().get(0);
+			if (p.getCoordinateX() > rightEdge) {
+				rightEdge = (int) p.getCoordinateX();
+			}
+			if (p.getCoordinateX() < leftEdge) {
+				leftEdge = (int) p.getCoordinateX();
+			}
+			if (p.getCoordinateY() > topEdge) {
+				topEdge = (int) p.getCoordinateY();
+			}
+			if (p.getCoordinateY() < bottomEdge) {
+				bottomEdge = (int) p.getCoordinateY();
+			}
+		}
+
+		mapScalarPoint = new Vector2(width / 2f, height / 2f);
+		strategicMap.init(width, height, zoom, maxZoom, width/hexDensity);
+
+		//Get a hexagon
+		Hexagon<SatelliteData> hexagon = grid.getHexagons().iterator().next();
+		Vector2 hexPoint = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
+
+		//THIS BLOCK SHOULD NOT BE NECESSARY- REMOVING IT BREAKS THE CODE
+		HexMap.camPosition = new Vector3(hexPoint.x, hexPoint.y - 200, 400);
 	}
 
 	@Override
 	public void render () {
-		zoom = UserEvents.checkInput(width, height, recedeFactor, screenCenter, zoom, hexMap, hexDensity, moveSpeed, minZoom, maxZoom, zoomSpeed, rightEdge, leftEdge, topEdge, bottomEdge);
+		zoom = UserEvents.checkInput(width, height, recedeFactor, mapScalarPoint, zoom, strategicMap, tacticalMap, hexDensity, moveSpeed, minZoom, maxZoom, zoomSpeed, rightEdge, leftEdge, topEdge, bottomEdge);
 
 		//Make color white
 		Gdx.gl.glClearColor(1, 1, 1, 1);
@@ -75,11 +111,17 @@ public class MyGame extends ApplicationAdapter {
 
 
 		if (zoom < maxZoom*2) {
-			batch.begin();
-			hexMap.renderMap(batch, width, height, (float) recedeFactor, screenCenter, zoom, maxZoom);
-			batch.end();
+			if (zoomed) {
+				zoomed = false;
+				strategicMap.init(width, height, zoom, maxZoom, width/hexDensity);
+			}
+			strategicMap.render();
 		} else {
-			zoomMap.renderZoom(width, height, recedeFactor, screenCenter, zoom, maxZoom, hexMap);
+			if (!zoomed) {
+				zoomed = true;
+				tacticalMap.init(width, height, zoom, maxZoom, width/hexDensity);
+			}
+			tacticalMap.render();
 		}
 	}
 
@@ -88,7 +130,8 @@ public class MyGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		shapeRenderer.dispose();
-		zoomMap.dispose();
+		tacticalMap.dispose();
+		strategicMap.dispose();
 		// Dispose other resources
 	}
 }
