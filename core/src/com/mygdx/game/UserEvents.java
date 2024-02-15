@@ -82,11 +82,13 @@ public class UserEvents {
         }
         if(Gdx.input.isKeyPressed(Input.Keys.Q)) {
             zoom += zoomSpeed;
+            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
             if (zoom > maxZoom * 3) {
                 zoom = maxZoom * 3;
             }
         } else if(Gdx.input.isKeyPressed(Input.Keys.E)) {
             zoom -= zoomSpeed;
+            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
             if (zoom < minZoom) {
                 zoom = minZoom;
             }
@@ -100,8 +102,8 @@ public class UserEvents {
         int y = (Gdx.input.getY() - height) * -1;
         Vector2 point = new Vector2(x, y);
         System.out.println("Click at: " + point.x + ", " + point.y);
-        Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
-        CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
-        hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+        //Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
+        //CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
+        //hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
     }
 }

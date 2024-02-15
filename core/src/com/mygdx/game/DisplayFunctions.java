@@ -1,12 +1,16 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 import org.hexworks.mixite.core.vendor.Maybe;
+
+import static com.badlogic.gdx.math.Rectangle.tmp;
 
 public class DisplayFunctions {
     private static final int inversionAccuracy = 10; //How many terms of the base equation to compare to find the closest value

@@ -92,13 +92,6 @@ public class MyGame extends ApplicationAdapter {
 
 		mapScalarPoint = new Vector2(width / 2f, height / 2f);
 		strategicMap.init(width, height, zoom, maxZoom, width/hexDensity);
-
-		//Get a hexagon
-		Hexagon<SatelliteData> hexagon = grid.getHexagons().iterator().next();
-		Vector2 hexPoint = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
-
-		//THIS BLOCK SHOULD NOT BE NECESSARY- REMOVING IT BREAKS THE CODE
-		HexMap.camPosition = new Vector3(hexPoint.x, hexPoint.y - 200, 400);
 	}
 
 	@Override

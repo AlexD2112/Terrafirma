@@ -30,13 +30,14 @@ public class StrategicMap extends HexMap{
         cam.position.set(0f, 10f, 10f);
         cam.lookAt(0,0,0);
         cam.near = 0.01f;
-        cam.far = 1000f;
+        cam.far = 4000f;
         cam.update();
-    }
+    }   
 
     @Override
     public void init(double width, double height, double zoom, double maxZoom, float hexSize) {
         super.hexSize = hexSize;
+        initInstances();
     }
 
     public void dispose() {
@@ -50,59 +51,21 @@ public class StrategicMap extends HexMap{
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         //Get first hexagon
-        Hexagon<SatelliteData> firstHex = grid.getHexagons().iterator().next();
 //        System.out.println(firstHex.getCenterX() + " " + firstHex.getCenterY());
 //        System.out.println(camPosition.x + " " + camPosition.y + " " + camPosition.z);
 
-        //Seamlessly transition to draw the hexagon being looked at
+
         cam.position.set(camPosition);
+        cam.lookAt(camPosition.x, camPosition.y + yOffset, 0);
         cam.update();
-        cam.lookAt(camPosition.x, camPosition.y + 100, 0);
-        cam.update();
+
+        System.out.println("Camera position: " + cam.position);
+        System.out.println("Camera look-at point: " + new Vector3(camPosition.x, camPosition.y + yOffset, 0));
 
         modelBatch.begin(cam);
-        //Loop through and display all hexagons in grid
-        for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
-            if (hexagon.getSatelliteData().isPresent()) {
-                CustomSatelliteData satelliteData = (CustomSatelliteData) hexagon.getSatelliteData().get();
-                Color color = satelliteData.getColor();
-                Vector2 hexCenter = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
-
-                ModelBuilder modelBuilder = new ModelBuilder();
-                modelBuilder.begin();
-                MeshPartBuilder builder = modelBuilder.part("hexagon", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color)));
-                createPointyTopHexagon(builder, hexSize, new Vector3(hexCenter, 0));
-                model = modelBuilder.end();
-                instance = new ModelInstance(model);
-                modelBatch.render(instance);
-            }
+        for (ModelInstance instance : instances) {
+            modelBatch.render(instance);
         }
-
         modelBatch.end();
-    }
-
-    private void createPointyTopHexagon(MeshPartBuilder builder, float size, Vector3 center) {
-        float radius = size / (float)Math.sqrt(3); // Calculate radius based on the size
-        Vector3[] vertices = new Vector3[6];
-
-        for (int i = 0; i < 6; i++) {
-            float angle = (float)Math.toRadians(30 + i * 60); // 30 degree offset for pointy top
-            float x = center.x + radius * MathUtils.cos(angle);
-            float y = center.y + radius * MathUtils.sin(angle);
-            vertices[i] = new Vector3(x, y, center.z);
-        }
-
-        for (int i = 0; i < 6; i++) {
-            builder.vertex(vertices[i].x, vertices[i].y, vertices[i].z,
-                    0, 0, 1, // Normal vector pointing up
-                    Color.rgb888(1, 2, 3), // Color (white)
-                    0, 0); // UV coordinates (unused)
-            if (i > 0) {
-                builder.triangle((short)0, (short)i, (short)(i + 1));
-            }
-        }
-
-        // Connect the last vertex back to the first one to complete the hexagon
-        builder.triangle((short)0, (short)6, (short)1);
     }
 }
