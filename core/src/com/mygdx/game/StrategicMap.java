@@ -32,12 +32,12 @@ public class StrategicMap extends HexMap{
         cam.near = 0.01f;
         cam.far = 4000f;
         cam.update();
-    }   
+    }
 
     @Override
-    public void init(double width, double height, double zoom, double maxZoom, float hexSize) {
+    public void init(float hexSize) {
         super.hexSize = hexSize;
-        initInstances();
+        initHexagons();
     }
 
     public void dispose() {
@@ -59,13 +59,15 @@ public class StrategicMap extends HexMap{
         cam.lookAt(camPosition.x, camPosition.y + yOffset, 0);
         cam.update();
 
-        System.out.println("Camera position: " + cam.position);
-        System.out.println("Camera look-at point: " + new Vector3(camPosition.x, camPosition.y + yOffset, 0));
-
         modelBatch.begin(cam);
-        for (ModelInstance instance : instances) {
-            modelBatch.render(instance);
+        int numHexagons = 0;
+        for (GameHexagon instance : hexagons) {
+            if (isVisible(cam, instance)) {
+                modelBatch.render(instance);
+                numHexagons++;
+            }
         }
+        System.out.println("Number of hexagons rendered: " + numHexagons);
         modelBatch.end();
     }
 }

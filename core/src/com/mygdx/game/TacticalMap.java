@@ -18,8 +18,6 @@ import org.hexworks.mixite.core.api.contract.SatelliteData;
 
 public class TacticalMap extends HexMap{
     private ModelInstance instance;
-    private Hexagon[] hexagons = new Hexagon[1];
-    private Vector2[] hexPoints = new Vector2[1];
     public TacticalMap(HexagonalGrid<SatelliteData> grid) {
         super(grid);
         modelBatch = new ModelBatch();
@@ -33,7 +31,7 @@ public class TacticalMap extends HexMap{
     }
 
     @Override
-    public void init(double width, double height, double zoom, double maxZoom, float hexSize) {
+    public void init(float hexSize) {
         super.hexSize = hexSize;
     }
 
@@ -57,7 +55,7 @@ public class TacticalMap extends HexMap{
         //Get the hexagon being looked at
         //Resolve SatelliteData to CustomSatteliteData
         modelBatch.begin(cam);
-        modelBatch.render(instances.get(0));
+        modelBatch.render(hexagons.get(0));
         modelBatch.end();
     }
 }

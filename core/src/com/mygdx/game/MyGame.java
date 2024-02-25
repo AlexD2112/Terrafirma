@@ -20,8 +20,8 @@ public class MyGame extends ApplicationAdapter {
 	private int width;
 	private Vector2 mapScalarPoint;
 	private double zoom = 1;
-	private static final double maxZoom = 2;
-	private static final double minZoom = 0.6;
+	private static final float maxZoom = 2;
+	private static final float minZoom = 0.6F;
 
 	private static final float moveSpeed = 5f;
 	private static final float zoomSpeed = 0.03f;
@@ -35,11 +35,14 @@ public class MyGame extends ApplicationAdapter {
 	private static int leftEdge;
 	private static int topEdge;
 	private static int bottomEdge;
+	private static int[] edges;
 
 	private Vector2[] vectors;
 
 	private StrategicMap strategicMap;
 	private TacticalMap tacticalMap;
+	private UserEvents userEvents;
+
 	private HexagonalGrid<SatelliteData> grid;
 	boolean zoomed = false;
 
@@ -89,14 +92,19 @@ public class MyGame extends ApplicationAdapter {
 				bottomEdge = (int) p.getCoordinateY();
 			}
 		}
+		edges = new int[]{rightEdge, leftEdge, topEdge, bottomEdge};
 
 		mapScalarPoint = new Vector2(width / 2f, height / 2f);
-		strategicMap.init(width, height, zoom, maxZoom, width/hexDensity);
+		strategicMap.init((float) width /hexDensity);
+
+		userEvents = new UserEvents(zoomSpeed, moveSpeed, maxZoom, minZoom, edges);
+		Gdx.input.setInputProcessor(userEvents);
 	}
 
 	@Override
 	public void render () {
-		zoom = UserEvents.checkInput(width, height, recedeFactor, mapScalarPoint, zoom, strategicMap, tacticalMap, hexDensity, moveSpeed, minZoom, maxZoom, zoomSpeed, rightEdge, leftEdge, topEdge, bottomEdge);
+		UserEvents.handleInputs();
+		zoom = UserEvents.zoom;
 
 		//Make color white
 		Gdx.gl.glClearColor(1, 1, 1, 1);
@@ -106,13 +114,13 @@ public class MyGame extends ApplicationAdapter {
 		if (zoom < maxZoom*2) {
 			if (zoomed) {
 				zoomed = false;
-				strategicMap.init(width, height, zoom, maxZoom, width/hexDensity);
+				strategicMap.init((float) width /hexDensity);
 			}
 			strategicMap.render();
 		} else {
 			if (!zoomed) {
 				zoomed = true;
-				tacticalMap.init(width, height, zoom, maxZoom, width/hexDensity);
+				tacticalMap.init((float) width /hexDensity);
 			}
 			tacticalMap.render();
 		}

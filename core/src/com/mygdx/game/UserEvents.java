@@ -2,108 +2,149 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import org.hexworks.mixite.core.api.Hexagon;
 
-public class UserEvents {
-    private static int width;
-    private static int height;
-    private static double recedeFactor;
-    private static Vector2 screenCenter;
-    private static double zoom;
-    private static HexMap hexMap;
-    private static int hexDensity;
-    private static float moveSpeed;
+import java.util.ArrayList;
+import java.util.Map;
+
+import com.mygdx.game.HexMap;
+
+public class UserEvents implements InputProcessor {
+    private static float maxZoom;
+    private static float minZoom;
     private static float zoomSpeed;
-    private static double minZoom;
-    private static double maxZoom;
-    private static int rightEdge;
-    private static int leftEdge;
-    private static int topEdge;
-    private static int bottomEdge;
+    private static float moveSpeed;
+    public static float zoom;
+    public static float modifiedMoveSpeed;
+    private static int[] edges;
+    public static Map<Integer, Boolean> keysHeld = new java.util.HashMap<>();
 
-
-    public static double checkInput(int receivedWidth, int receivedHeight, double receivedRecedeFactor, Vector2 givenScreenCenter, double receivedZoom, HexMap receivedHexMap, TacticalMap receivedTacticalMap, int receivedHexDensity, float receivedMoveSpeed, double receivedMinZoom, double receivedMaxZoom, float receivedZoomSpeed, int receivedRightEdge, int receivedLeftEdge, int receivedTopEdge, int receivedBottomEdge) {
-        screenCenter = givenScreenCenter;
-        width = receivedWidth;
-        height = receivedHeight;
-        recedeFactor = receivedRecedeFactor;
-        zoom = receivedZoom;
-        hexMap = receivedHexMap;
-        hexDensity = receivedHexDensity;
-        moveSpeed = receivedMoveSpeed;
-        zoomSpeed = receivedZoomSpeed;
-        minZoom = receivedMinZoom;
-        maxZoom = receivedMaxZoom;
-        rightEdge = receivedRightEdge;
-        leftEdge = receivedLeftEdge;
-        topEdge = receivedTopEdge;
-        bottomEdge = receivedBottomEdge;
-
-        float modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
-
-        if (Gdx.input.justTouched()) {
-            processClick();
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit();
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
-            modifiedMoveSpeed *= 3;
-        }
-        modifiedMoveSpeed /= (float) zoom;
-        if(Gdx.input.isKeyPressed(Input.Keys.D)) {
-            screenCenter.x += modifiedMoveSpeed;
-            HexMap.camPosition.x += modifiedMoveSpeed;
-//            if (screenCenter.x > rightEdge)	{
-//                screenCenter.x = rightEdge;
-//            }
-        } else if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-            screenCenter.x -= modifiedMoveSpeed;
-            HexMap.camPosition.x -= modifiedMoveSpeed;
-//            if (screenCenter.x < leftEdge) {
-//                screenCenter.x = leftEdge;
-//            }
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.W)) {
-            screenCenter.y += modifiedMoveSpeed;
-            HexMap.camPosition.y += modifiedMoveSpeed;
-//            if (screenCenter.y > topEdge) {
-//                screenCenter.y = topEdge;
-//            }
-        } else if(Gdx.input.isKeyPressed(Input.Keys.S)) {
-            screenCenter.y -= modifiedMoveSpeed;
-            HexMap.camPosition.y -= modifiedMoveSpeed;
-//            if (screenCenter.y < bottomEdge) {
-//                screenCenter.y = bottomEdge;
-//            }
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.Q)) {
-            zoom += zoomSpeed;
-            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
-            if (zoom > maxZoom * 3) {
-                zoom = maxZoom * 3;
-            }
-        } else if(Gdx.input.isKeyPressed(Input.Keys.E)) {
-            zoom -= zoomSpeed;
-            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
-            if (zoom < minZoom) {
-                zoom = minZoom;
-            }
-        }
-
-        return zoom;
+    public UserEvents(float zoomSpeed, float moveSpeed, float maxZoom, float minZoom, int[] edges) {
+        UserEvents.zoomSpeed = zoomSpeed;
+        UserEvents.moveSpeed = moveSpeed;
+        UserEvents.maxZoom = maxZoom;
+        UserEvents.minZoom = minZoom;
+        UserEvents.edges = edges;
+        zoom = 1;
     }
 
-    public static void processClick() {
-        int x = Gdx.input.getX();
-        int y = (Gdx.input.getY() - height) * -1;
-        Vector2 point = new Vector2(x, y);
-        System.out.println("Click at: " + point.x + ", " + point.y);
+    public boolean touchDown(int clickX, int clickY, int pointer, int button) {
+        processClick(clickX, clickY, button);
+        return true;
+    }
+
+    public boolean keyDown(int keycode) {
+        switch (keycode) {
+            case Input.Keys.ESCAPE:
+                Gdx.app.exit();
+                break;
+            case Input.Keys.SHIFT_LEFT:
+            case Input.Keys.SHIFT_RIGHT:
+                moveSpeed *= 3;
+                break;
+            default:
+                keysHeld.put(keycode, true);
+        }
+        return true;
+    }
+
+    public boolean keyUp(int keycode) {
+        switch (keycode) {
+            case Input.Keys.SHIFT_LEFT:
+            case Input.Keys.SHIFT_RIGHT:
+                moveSpeed = moveSpeed / 3;
+                break;
+            default:
+                keysHeld.put(keycode, false);
+        }
+        return true;
+    }
+
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
+
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    public boolean scrolled(float amountX, float amountY) {
+        return false;
+    }
+
+    public static void processClick(int x, int y, int mouseNum) {
         //Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
         //CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
         //hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+    }
+
+    public static void handleInputs() {
+        modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.W))) {
+            HexMap.camPosition.y += modifiedMoveSpeed;
+            if (HexMap.camPosition.y + HexMap.getYOffset() > edges[2]) {
+                HexMap.camPosition.y = edges[2] - HexMap.getYOffset();
+            }
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.S))) {
+            HexMap.camPosition.y -= modifiedMoveSpeed;
+
+            if (HexMap.camPosition.y + HexMap.getYOffset() < edges[3]) {
+                HexMap.camPosition.y = edges[3] - HexMap.getYOffset();
+            }
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.A))) {
+            HexMap.camPosition.x -= modifiedMoveSpeed;
+
+            if (HexMap.camPosition.x < edges[1]) {
+                HexMap.camPosition.x = edges[1];
+            }
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.D))) {
+            HexMap.camPosition.x += modifiedMoveSpeed;
+            if (HexMap.camPosition.x > edges[0]) {
+                HexMap.camPosition.x = edges[0];
+            }
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.Q))) {
+            zoom += zoomSpeed;
+            if (zoom > maxZoom * 3) {
+                zoom = maxZoom * 3;
+            }
+
+            if (HexMap.camPosition.y + HexMap.getYOffset() < edges[3]) {
+                HexMap.camPosition.y = edges[3] - HexMap.getYOffset();
+            }
+
+            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.E))) {
+            zoom -= zoomSpeed;
+            if (zoom < minZoom) {
+                zoom = minZoom;
+            }
+
+            if (HexMap.camPosition.y + HexMap.getYOffset() > edges[2]) {
+                HexMap.camPosition.y = edges[2] - HexMap.getYOffset();
+            }
+
+            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
+        }
     }
 }
