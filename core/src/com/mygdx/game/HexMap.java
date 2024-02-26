@@ -17,7 +17,7 @@ import com.badlogic.gdx.math.Matrix4;
 import java.util.ArrayList;
 
 public class HexMap {
-    public PerspectiveCamera cam;
+    public static PerspectiveCamera cam;
     public ModelBatch modelBatch;
     public Model model;
     public static Vector3 camPosition = new Vector3(0, 0, 0);
@@ -67,7 +67,6 @@ public class HexMap {
                 GameHexagon.Builder builder = new GameHexagon.Builder();
                 GameHexagon instance = builder.setSize(hexSize).setColor(color).build();
                 instance.transform.setToTranslation(new Vector3(hexCenter.x, hexCenter.y, 0));
-                System.out.println(instance.transform.getTranslation(new Vector3()));
                 //Append to instances
                 hexagons.add(instance);
             }

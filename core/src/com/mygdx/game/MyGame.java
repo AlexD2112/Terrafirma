@@ -99,6 +99,8 @@ public class MyGame extends ApplicationAdapter {
 
 		userEvents = new UserEvents(zoomSpeed, moveSpeed, maxZoom, minZoom, edges);
 		Gdx.input.setInputProcessor(userEvents);
+
+		DisplayFunctions.initDisplayFunctions(grid, width, height, hexDensity);
 	}
 
 	@Override

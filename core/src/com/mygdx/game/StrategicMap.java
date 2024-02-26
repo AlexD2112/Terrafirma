@@ -36,6 +36,7 @@ public class StrategicMap extends HexMap{
 
     @Override
     public void init(float hexSize) {
+        cam.far = 2000f;
         super.hexSize = hexSize;
         initHexagons();
     }
@@ -67,7 +68,6 @@ public class StrategicMap extends HexMap{
                 numHexagons++;
             }
         }
-        System.out.println("Number of hexagons rendered: " + numHexagons);
         modelBatch.end();
     }
 }

@@ -26,12 +26,13 @@ public class TacticalMap extends HexMap{
         cam.position.set(0f, 10f, 10f);
         cam.lookAt(0,0,0);
         cam.near = 0.01f;
-        cam.far = 1000f;
+        cam.far = 4000f;
         cam.update();
     }
 
     @Override
     public void init(float hexSize) {
+        cam.far = 1000f;
         super.hexSize = hexSize;
     }
 

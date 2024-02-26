@@ -6,6 +6,8 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import org.hexworks.mixite.core.api.Hexagon;
 
 import java.util.ArrayList;
@@ -69,6 +71,7 @@ public class UserEvents implements InputProcessor {
     }
 
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        System.out.println("touchUp");
         return false;
     }
 
@@ -89,11 +92,18 @@ public class UserEvents implements InputProcessor {
     }
 
     public static void processClick(int x, int y, int mouseNum) {
-        //Hexagon hex = DisplayFunctions.getHexFromPoint(point, hexMap, width, height, recedeFactor, screenCenter, zoom, hexDensity);
-        //CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
-        //hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+        Ray ray = HexMap.cam.getPickRay(x, y);
+        //Get vector2 of final value of ray where z = 0
+        Vector3 point = new Vector3();
+        float zOrigin = ray.origin.z;
+        float zDirection = ray.direction.z;
+        float t = -zOrigin / zDirection;
+        point.set(ray.origin.x + t * ray.direction.x, ray.origin.y + t * ray.direction.y, 0);
+        System.out.println("clickPoint" + point);
+        Hexagon hex = DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
+        CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
+        hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
     }
-
     public static void handleInputs() {
         modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.W))) {
