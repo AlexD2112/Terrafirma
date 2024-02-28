@@ -16,6 +16,9 @@ import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TacticalMap extends HexMap{
     private ModelInstance instance;
     public TacticalMap(HexagonalGrid<SatelliteData> grid) {
@@ -52,11 +55,20 @@ public class TacticalMap extends HexMap{
         cam.lookAt(camPosition.x, camPosition.y + yOffset, 0);
         cam.update();
 
+        List<GameHexagon> hexagons = new ArrayList<>(7);
 
-        //Get the hexagon being looked at
-        //Resolve SatelliteData to CustomSatteliteData
+        //Get hexagon being looked at- if present, use getGameHexagon to get the game hexagon of this object and of adjacent hexs
+        grid.getByPixelCoordinate(camPosition.x, camPosition.y + yOffset).ifPresent(hex -> {
+            hexagons.add(((CustomSatelliteData) hex.getSatelliteData().get()).getGameHexagon());
+            for (Hexagon<SatelliteData> adjacentHex : grid.getNeighborsOf(hex)) {
+                hexagons.add(((CustomSatelliteData) adjacentHex.getSatelliteData().get()).getGameHexagon());
+            }
+        });
+
         modelBatch.begin(cam);
-        modelBatch.render(hexagons.get(0));
+        for (GameHexagon instance : hexagons) {
+            instance.renderHex(modelBatch);
+        }
         modelBatch.end();
     }
 }

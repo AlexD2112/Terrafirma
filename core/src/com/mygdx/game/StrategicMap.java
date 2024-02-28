@@ -61,11 +61,9 @@ public class StrategicMap extends HexMap{
         cam.update();
 
         modelBatch.begin(cam);
-        int numHexagons = 0;
         for (GameHexagon instance : hexagons) {
             if (isVisible(cam, instance)) {
-                modelBatch.render(instance);
-                numHexagons++;
+                instance.renderHex(modelBatch);
             }
         }
         modelBatch.end();

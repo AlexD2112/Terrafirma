@@ -10,10 +10,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import org.hexworks.mixite.core.api.Hexagon;
 
-import java.util.ArrayList;
 import java.util.Map;
 
-import com.mygdx.game.HexMap;
+import org.hexworks.mixite.core.api.contract.SatelliteData;
 
 public class UserEvents implements InputProcessor {
     private static float maxZoom;
@@ -92,17 +91,14 @@ public class UserEvents implements InputProcessor {
     }
 
     public static void processClick(int x, int y, int mouseNum) {
-        Ray ray = HexMap.cam.getPickRay(x, y);
-        //Get vector2 of final value of ray where z = 0
-        Vector3 point = new Vector3();
-        float zOrigin = ray.origin.z;
-        float zDirection = ray.direction.z;
-        float t = -zOrigin / zDirection;
-        point.set(ray.origin.x + t * ray.direction.x, ray.origin.y + t * ray.direction.y, 0);
-        System.out.println("clickPoint" + point);
-        Hexagon hex = DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
-        CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
-        hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+        if (mouseNum == Input.Buttons.LEFT) {
+            Hexagon<SatelliteData> hex = getHexFromClick(x, y);
+            if (hex != null) {
+                CustomSatelliteData hexData = (CustomSatelliteData) hex.getSatelliteData().get();
+                hexData.setColor(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+                hexData.refreshGameHexagon(DisplayFunctions.getHexWidth(), hex);
+            }
+        }
     }
     public static void handleInputs() {
         modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
@@ -156,5 +152,16 @@ public class UserEvents implements InputProcessor {
 
             HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
         }
+    }
+
+    public static Hexagon<SatelliteData> getHexFromClick(int x, int y) {
+        Ray ray = HexMap.cam.getPickRay(x, y);
+        //Get vector2 of final value of ray where z = 0
+        Vector3 point = new Vector3();
+        float zOrigin = ray.origin.z;
+        float zDirection = ray.direction.z;
+        float t = -zOrigin / zDirection;
+        point.set(ray.origin.x + t * ray.direction.x, ray.origin.y + t * ray.direction.y, 0);
+        return DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
     }
 }

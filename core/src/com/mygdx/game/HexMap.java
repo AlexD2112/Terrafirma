@@ -64,18 +64,17 @@ public class HexMap {
                 CustomSatelliteData satelliteData = (CustomSatelliteData) hexagon.getSatelliteData().get();
                 Vector2 hexCenter = new Vector2((float) hexagon.getCenterX(), (float) hexagon.getCenterY());
                 Color color = satelliteData.getColor();
-                GameHexagon.Builder builder = new GameHexagon.Builder();
-                GameHexagon instance = builder.setSize(hexSize).setColor(color).build();
-                instance.transform.setToTranslation(new Vector3(hexCenter.x, hexCenter.y, 0));
+                GameHexagon hex = new GameHexagon(hexSize, color, hexCenter);
+                satelliteData.setGameHexagon(hex);
                 //Append to instances
-                hexagons.add(instance);
+                hexagons.add(hex);
             }
         }
     }
 
     private Vector3 positionCheck = new Vector3();
     protected boolean isVisible(final Camera cam, final GameHexagon instance) {
-        instance.transform.getTranslation(positionCheck);
+        instance.getTranslation(positionCheck);
         return cam.frustum.sphereInFrustum(positionCheck, instance.getRadius());
     }
 
