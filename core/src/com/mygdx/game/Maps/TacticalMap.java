@@ -1,17 +1,11 @@
-package com.mygdx.game;
+package com.mygdx.game.Maps;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.CustomSatelliteData;
+import com.mygdx.game.GameObjects.GameHexagon;
 import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
@@ -19,8 +13,7 @@ import org.hexworks.mixite.core.api.contract.SatelliteData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TacticalMap extends HexMap{
-    private ModelInstance instance;
+public class TacticalMap extends HexMap {
     public TacticalMap(HexagonalGrid<SatelliteData> grid) {
         super(grid);
         modelBatch = new ModelBatch();
@@ -70,5 +63,14 @@ public class TacticalMap extends HexMap{
             instance.renderHex(modelBatch);
         }
         modelBatch.end();
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        if (cloudCover > 0) {
+            cloud.renderCloudCover(cloudCover);
+        }
+
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 }

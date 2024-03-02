@@ -1,27 +1,16 @@
-package com.mygdx.game;
+package com.mygdx.game.Maps;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import org.hexworks.mixite.core.api.CubeCoordinate;
-import org.hexworks.mixite.core.api.Hexagon;
+import com.mygdx.game.GameObjects.CloudCover;
+import com.mygdx.game.GameObjects.GameHexagon;
 import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
-import java.util.ArrayList;
-
-public class StrategicMap extends HexMap{
+public class StrategicMap extends HexMap {
     public StrategicMap(HexagonalGrid<SatelliteData> grid) {
         super(grid);
         modelBatch = new ModelBatch();
@@ -33,6 +22,8 @@ public class StrategicMap extends HexMap{
         cam.far = 4000f;
         cam.update();
     }
+
+
 
     @Override
     public void init(float hexSize) {
@@ -67,5 +58,14 @@ public class StrategicMap extends HexMap{
             }
         }
         modelBatch.end();
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        if (cloudCover > 0) {
+            cloud.renderCloudCover(cloudCover);
+        }
+
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 }

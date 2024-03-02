@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.Maps;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.CustomSatelliteData;
 import org.hexworks.mixite.core.api.*;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 import space.earlygrey.shapedrawer.ShapeDrawer;

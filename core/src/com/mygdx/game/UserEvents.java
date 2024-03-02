@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.mygdx.game.Maps.HexMap;
 import org.hexworks.mixite.core.api.Hexagon;
 
 import java.util.Map;
@@ -104,54 +105,32 @@ public class UserEvents implements InputProcessor {
         modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.W))) {
             HexMap.camPosition.y += modifiedMoveSpeed;
-            if (HexMap.camPosition.y + HexMap.getYOffset() > edges[2]) {
-                HexMap.camPosition.y = edges[2] - HexMap.getYOffset();
-            }
         }
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.S))) {
             HexMap.camPosition.y -= modifiedMoveSpeed;
-
-            if (HexMap.camPosition.y + HexMap.getYOffset() < edges[3]) {
-                HexMap.camPosition.y = edges[3] - HexMap.getYOffset();
-            }
-        }
-        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.A))) {
-            HexMap.camPosition.x -= modifiedMoveSpeed;
-
-            if (HexMap.camPosition.x < edges[1]) {
-                HexMap.camPosition.x = edges[1];
-            }
         }
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.D))) {
             HexMap.camPosition.x += modifiedMoveSpeed;
-            if (HexMap.camPosition.x > edges[0]) {
-                HexMap.camPosition.x = edges[0];
-            }
+        }
+        if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.A))) {
+            HexMap.camPosition.x -= modifiedMoveSpeed;
         }
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.Q))) {
             zoom += zoomSpeed;
             if (zoom > maxZoom * 3) {
                 zoom = maxZoom * 3;
             }
-
-            if (HexMap.camPosition.y + HexMap.getYOffset() < edges[3]) {
-                HexMap.camPosition.y = edges[3] - HexMap.getYOffset();
-            }
-
-            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
+            HexMap.zoomCamera(HexMap.camPosition, zoom);
         }
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.E))) {
             zoom -= zoomSpeed;
             if (zoom < minZoom) {
                 zoom = minZoom;
             }
-
-            if (HexMap.camPosition.y + HexMap.getYOffset() > edges[2]) {
-                HexMap.camPosition.y = edges[2] - HexMap.getYOffset();
-            }
-
-            HexMap.zoomCamera(HexMap.camPosition, (float) zoom);
+            HexMap.zoomCamera(HexMap.camPosition, zoom);
         }
+        HexMap.camPosition.y = MathUtils.clamp(HexMap.camPosition.y + HexMap.getYOffset(), edges[3], edges[2]) - HexMap.getYOffset();
+        HexMap.camPosition.x = MathUtils.clamp(HexMap.camPosition.x, edges[1], edges[0]);
     }
 
     public static Hexagon<SatelliteData> getHexFromClick(int x, int y) {
@@ -162,6 +141,7 @@ public class UserEvents implements InputProcessor {
         float zDirection = ray.direction.z;
         float t = -zOrigin / zDirection;
         point.set(ray.origin.x + t * ray.direction.x, ray.origin.y + t * ray.direction.y, 0);
+        System.out.println("Point: " + point.x + ", " + point.y);
         return DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
     }
 }

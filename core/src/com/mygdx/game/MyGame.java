@@ -7,7 +7,8 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.Maps.StrategicMap;
+import com.mygdx.game.Maps.TacticalMap;
 import org.hexworks.mixite.core.api.*;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 import com.badlogic.gdx.graphics.Color;
@@ -20,7 +21,7 @@ public class MyGame extends ApplicationAdapter {
 	private int width;
 	private Vector2 mapScalarPoint;
 	private double zoom = 1;
-	private static final float maxZoom = 2;
+	private static final float maxZoom = 4.4f;
 	private static final float minZoom = 0.6F;
 
 	private static final float moveSpeed = 5f;
@@ -30,6 +31,8 @@ public class MyGame extends ApplicationAdapter {
 	private static final int worldWidth = 28;
 	private static final int worldHeight = 13;
 	private static final int hexDensity = 6;
+	private static final float cloudBegin = 0.66f;
+	private static final int tacticalCloudShift = 4; //Higher numbers speed up zoom in on tactical mode, allowing a slightly more zoomed out tactical without cloud effect
 
 	private static int rightEdge;
 	private static int leftEdge;
@@ -113,16 +116,27 @@ public class MyGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
-		if (zoom < maxZoom*2) {
-			if (zoomed) {
+		if (zoom < maxZoom) { //CODE FOR ZOOMED OUT- STRATEGIC MAP
+			if (zoomed) { //If we just zoomed out, we need to reinitialize the strategic map
 				zoomed = false;
 				strategicMap.init((float) width /hexDensity);
 			}
+			if (zoom > cloudBegin * maxZoom) { //If we are in the cloud zone, we need to adjust the cloud factor
+				strategicMap.setCloud((float) ((zoom - cloudBegin * maxZoom) / (maxZoom - cloudBegin * maxZoom)));
+			} else {
+				strategicMap.setCloud(0);
+			}
 			strategicMap.render();
-		} else {
-			if (!zoomed) {
+		} else { //CODE FOR ZOOMED IN- TACTICAL MAP
+			if (!zoomed) { //If we just zoomed in, we need to reinitialize the tactical map
 				zoomed = true;
 				tacticalMap.init((float) width /hexDensity);
+			}
+			float adjustedCloudFactor = 1 + (cloudBegin / tacticalCloudShift); //Don't want to make it so hard to zoom out in tactical mode
+			if (zoom < maxZoom + adjustedCloudFactor * maxZoom) { //If we are in the cloud zone, we need to adjust the cloud factor
+				tacticalMap.setCloud((float) (zoom - adjustedCloudFactor * maxZoom) / (maxZoom - adjustedCloudFactor * maxZoom));
+			} else {
+				tacticalMap.setCloud(0);
 			}
 			tacticalMap.render();
 		}

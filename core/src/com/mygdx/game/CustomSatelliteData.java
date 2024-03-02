@@ -2,7 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.GameObjects.GameHexagon;
 import org.hexworks.mixite.core.api.Hexagon;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 import org.hexworks.mixite.core.api.defaults.DefaultSatelliteData;
