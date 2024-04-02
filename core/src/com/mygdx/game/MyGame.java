@@ -81,18 +81,19 @@ public class MyGame extends ApplicationAdapter {
 		bottomEdge = 0;
 
 		for (Hexagon<SatelliteData> hexagon : grid.getHexagons()) {
-			Point p = hexagon.getPoints().get(0);
-			if (p.getCoordinateX() > rightEdge) {
-				rightEdge = (int) p.getCoordinateX();
-			}
-			if (p.getCoordinateX() < leftEdge) {
-				leftEdge = (int) p.getCoordinateX();
-			}
-			if (p.getCoordinateY() > topEdge) {
-				topEdge = (int) p.getCoordinateY();
-			}
-			if (p.getCoordinateY() < bottomEdge) {
-				bottomEdge = (int) p.getCoordinateY();
+			for (Point p : hexagon.getPoints()) {
+				if (p.getCoordinateX() > rightEdge) {
+					rightEdge = (int) p.getCoordinateX();
+				}
+				if (p.getCoordinateX() < leftEdge) {
+					leftEdge = (int) p.getCoordinateX();
+				}
+				if (p.getCoordinateY() > topEdge) {
+					topEdge = (int) p.getCoordinateY();
+				}
+				if (p.getCoordinateY() < bottomEdge) {
+					bottomEdge = (int) p.getCoordinateY();
+				}
 			}
 		}
 		edges = new int[]{rightEdge, leftEdge, topEdge, bottomEdge};
@@ -100,7 +101,7 @@ public class MyGame extends ApplicationAdapter {
 		mapScalarPoint = new Vector2(width / 2f, height / 2f);
 		strategicMap.init((float) width /hexDensity);
 
-		userEvents = new UserEvents(zoomSpeed, moveSpeed, maxZoom, minZoom, edges);
+		userEvents = new UserEvents(zoomSpeed, moveSpeed, maxZoom, minZoom, edges, grid);
 		Gdx.input.setInputProcessor(userEvents);
 
 		DisplayFunctions.initDisplayFunctions(grid, width, height, hexDensity);

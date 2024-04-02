@@ -1,2 +1,4 @@
-package com.mygdx.game.GameObjects;public class TacticalObject {
+package com.mygdx.game.GameObjects;
+
+public class TacticalObject {
 }

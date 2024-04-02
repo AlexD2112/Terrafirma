@@ -4,15 +4,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.mygdx.game.GameObjects.GameHexagon;
 import com.mygdx.game.Maps.HexMap;
 import org.hexworks.mixite.core.api.Hexagon;
 
+import java.util.Collection;
 import java.util.Map;
 
+import org.hexworks.mixite.core.api.HexagonalGrid;
 import org.hexworks.mixite.core.api.contract.SatelliteData;
 
 public class UserEvents implements InputProcessor {
@@ -24,13 +28,15 @@ public class UserEvents implements InputProcessor {
     public static float modifiedMoveSpeed;
     private static int[] edges;
     public static Map<Integer, Boolean> keysHeld = new java.util.HashMap<>();
+    public static HexagonalGrid<SatelliteData> grid;
 
-    public UserEvents(float zoomSpeed, float moveSpeed, float maxZoom, float minZoom, int[] edges) {
+    public UserEvents(float zoomSpeed, float moveSpeed, float maxZoom, float minZoom, int[] edges, HexagonalGrid<SatelliteData> grid) {
         UserEvents.zoomSpeed = zoomSpeed;
         UserEvents.moveSpeed = moveSpeed;
         UserEvents.maxZoom = maxZoom;
         UserEvents.minZoom = minZoom;
         UserEvents.edges = edges;
+        UserEvents.grid = grid;
         zoom = 1;
     }
 
@@ -71,7 +77,7 @@ public class UserEvents implements InputProcessor {
     }
 
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        System.out.println("touchUp");
+        //System.out.println("touchUp");
         return false;
     }
 
@@ -102,6 +108,7 @@ public class UserEvents implements InputProcessor {
         }
     }
     public static void handleInputs() {
+        //System.out.println("MaxY" + edges[2]);
         modifiedMoveSpeed = moveSpeed / (float) Math.sqrt(zoom);
         if (Boolean.TRUE.equals(keysHeld.get(Input.Keys.W))) {
             HexMap.camPosition.y += modifiedMoveSpeed;
@@ -131,6 +138,7 @@ public class UserEvents implements InputProcessor {
         }
         HexMap.camPosition.y = MathUtils.clamp(HexMap.camPosition.y + HexMap.getYOffset(), edges[3], edges[2]) - HexMap.getYOffset();
         HexMap.camPosition.x = MathUtils.clamp(HexMap.camPosition.x, edges[1], edges[0]);
+
     }
 
     public static Hexagon<SatelliteData> getHexFromClick(int x, int y) {
@@ -142,6 +150,16 @@ public class UserEvents implements InputProcessor {
         float t = -zOrigin / zDirection;
         point.set(ray.origin.x + t * ray.direction.x, ray.origin.y + t * ray.direction.y, 0);
         System.out.println("Point: " + point.x + ", " + point.y);
-        return DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
+        Hexagon<SatelliteData> hexagon = DisplayFunctions.getHexFromPoint(new Vector2(point.x, point.y));
+        //Print edges
+//        if (hexagon != null) {
+//            System.out.println("Edges: " + hexagon.getPoints().get(0).getCoordinateX() + ", " + hexagon.getPoints().get(0).getCoordinateY());
+//            System.out.println("Edges: " + hexagon.getPoints().get(1).getCoordinateX() + ", " + hexagon.getPoints().get(1).getCoordinateY());
+//            System.out.println("Edges: " + hexagon.getPoints().get(2).getCoordinateX() + ", " + hexagon.getPoints().get(2).getCoordinateY());
+//            System.out.println("Edges: " + hexagon.getPoints().get(3).getCoordinateX() + ", " + hexagon.getPoints().get(3).getCoordinateY());
+//            System.out.println("Edges: " + hexagon.getPoints().get(4).getCoordinateX() + ", " + hexagon.getPoints().get(4).getCoordinateY());
+//            System.out.println("Edges: " + hexagon.getPoints().get(5).getCoordinateX() + ", " + hexagon.getPoints().get(5).getCoordinateY());
+//        }
+        return hexagon;
     }
 }

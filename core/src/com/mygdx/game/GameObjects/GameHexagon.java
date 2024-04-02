@@ -50,6 +50,10 @@ public class GameHexagon {
         return size / (float) Math.sqrt(3);
     }
 
+    public Vector3 getCenter() {
+        return new Vector3(position.x, position.y, 0);
+    }
+
     public void refreshInstance() {
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
